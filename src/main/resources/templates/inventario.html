@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART - Catálogo Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🌱 AGROSMART</a>
+        <div class="d-flex align-items-center text-white gap-3">
+            <span class="small d-none d-md-inline text-white-50">API Sincronizada con Mindicador.cl</span>
+            <i class="bi bi-cart3 fs-4 position-relative">
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">0</span>
+            </i>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-4">
+    <div class="bg-white p-4 rounded shadow-sm d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Catálogo de Tecnología Agrícola</h3>
+            <p class="text-muted mb-0 small">Cotiza maquinaria de precisión, sensores IoT y repuestos con despacho a predio.</p>
+        </div>
+        <span class="small d-none d-md-inline text-white-50"><i class="bi bi-arrow-repeat"></i> Precios en CLP convertidos al valor del dólar observado hoy</span>
+    </div>
+</div>
+
+<div class="container mb-4 text-center">
+    <div class="btn-group shadow-sm" role="group" aria-label="Filtros de categoría">
+        <button type="button" class="btn btn-success active filter-btn" onclick="filtrarProductos('todos', this)">Todos los Productos</button>
+        <button type="button" class="btn btn-outline-success filter-btn" onclick="filtrarProductos('dron', this)">⚙️ Drones</button>
+        <button type="button" class="btn btn-outline-success filter-btn" onclick="filtrarProductos('sensor', this)">🌡️ Sensores IoT</button>
+        <button type="button" class="btn btn-outline-success filter-btn" onclick="filtrarProductos('repuesto', this)">🔧 Repuestos</button>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div th:if="${#lists.isEmpty(productos)}" class="text-center py-5 bg-white rounded shadow-sm">
+        <i class="bi bi-basket3 display-3 text-muted"></i>
+        <h5 class="mt-3 text-muted">No hay productos disponibles en este momento</h5>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+
+        <div class="col producto-item" th:each="prod : ${productos}" th:data-categoria="${prod.categoria}">
+            <div class="card h-100 shadow-sm border-0 position-relative">
+
+                <span class="position-absolute top-0 start-0 m-2 badge bg-dark text-uppercase shadow-sm" th:text="${prod.categoria}">dron</span>
+
+                <img th:src="${prod.urlImagenProducto != null ? prod.urlImagenProducto : 'https://dummyimage.com/500x300/e2e8f0/64748b&text=Sin+Imagen+Disponible'}"
+                     class="card-img-top bg-secondary-subtle object-fit-cover"
+                     style="height: 180px;"
+                     alt="Imagen del producto">
+
+                <div class="card-body d-flex flex-column p-3">
+                    <p class="text-muted small mb-1" th:text="'Cód: ' + ${prod.codigoProducto}">COD-000</p>
+                    <h6 class="card-title fw-bold text-dark text-truncate mb-2" th:text="${prod.nombre}">Nombre del Producto</h6>
+
+                    <p class="card-text text-muted small flex-grow-1 text-truncate" th:text="${prod.descripcion}">Descripción...</p>
+
+                    <div class="bg-light p-2 rounded mb-3">
+                        <div class="d-flex align-items-baseline gap-1">
+                            <span class="fs-4 fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(prod.precioClpCache, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                            <span class="text-muted fw-bold" style="font-size: 11px;">CLP</span>
+                        </div>
+                        <span class="text-muted d-block" style="font-size: 10px;" th:text="'(Aprox. USD $' + ${#numbers.formatDecimal(prod.precioBaseUsd, 1, 0, 'COMMA')} + ')'">(USD $0)</span>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-auto">
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-bold"
+                                data-bs-toggle="modal"
+                                th:data-bs-target="'#modal-' + ${prod.idProducto}">
+                            <i class="bi bi-eye-fill"></i> Ver Detalles
+                        </button>
+
+                        <button class="btn btn-sm btn-success fw-bold">
+                            <i class="bi bi-cart-plus-fill"></i> Añadir al carro
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" th:id="'modal-' + ${prod.idProducto}"  tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title fw-bold"><i class="bi bi-info-circle-fill"></i> Detalle Técnico del Producto</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <div class="row">
+                                <div class="col-md-5 mb-3 mb-md-0 text-center">
+                                    <img th:src="${prod.urlImagenProducto != null ? prod.urlImagenProducto : 'https://dummyimage.com/500x300/e2e8f0/64748b&text=Sin+Imagen+Disponible'}"
+                                         class="img-fluid rounded bg-light p-2 border border-secondary-subtle shadow-sm object-fit-cover"
+                                         style="max-height: 250px;" alt="Imagen Detalle">
+                                    <span class="badge bg-dark mt-3 d-inline-block px-3 py-2 text-uppercase" th:text="'Categoría: ' + ${prod.categoria}">CATEGORIA</span>
+                                </div>
+                                <div class="col-md-7">
+                                    <span class="text-muted small d-block mb-1 fw-bold" th:text="'CÓDIGO ÚNICO: ' + ${prod.codigoProducto}">COD</span>
+                                    <h4 class="fw-bold text-dark mb-3" th:text="${prod.nombre}">Nombre</h4>
+                                    <p class="text-secondary" th:text="${prod.descripcion}">Descripción completa del producto.</p>
+                                    <hr>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="p-2 border rounded bg-light">
+                                                <small class="text-muted d-block">Precio Base</small>
+                                                <span class="fw-bold text-dark" th:text="'USD $' + ${#numbers.formatDecimal(prod.precioBaseUsd, 1, 'POINT', 2, 'COMMA')}">0.00</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-2 border rounded bg-success-subtle">
+                                                <small class="text-success-emphasis d-block fw-bold">Precio Final Neto</small>
+                                                <span class="fw-bold text-success fs-5" th:text="'$' + ${#numbers.formatDecimal(prod.precioClpCache, 1, 'POINT', 0, 'COMMA')} + ' CLP'">0 CLP</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <small class="text-muted" th:text="'* Conversión calculada automáticamente con Tipo de Cambio: $' + ${prod.tipoCambioUsado} + ' CLP.'">TC</small>
+                                        </div>
+                                    </div>
+                                    <div th:if="${prod.requiereAprobacionCredito}" class="alert alert-warning py-2 px-3 border-0 rounded small mb-3">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> <strong>Atención Financiera:</strong> Este artículo requiere obligatoriamente la evaluación y aprobación del **Encargado de Cobranzas** antes de autorizar el despacho logístico.
+                                    </div>
+                                    <p class="small text-muted mb-2" th:if="${prod.pesoKg != null}">
+                                        <i class="bi bi-speedometer2"></i> <strong>Peso del bulto:</strong> <span th:text="${prod.pesoKg} + ' Kg'">0 Kg</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light border-top-0 d-flex justify-content-between">
+                            <div>
+                                <a th:href="${prod.fichaTecnicaUrl}" target="_blank" class="btn btn-outline-danger btn-sm fw-bold" th:if="${prod.fichaTecnicaUrl != null}">
+                                    <i class="bi bi-file-earmark-pdf-fill"></i> Descargar Ficha Técnica (.PDF)
+                                </a>
+                                <span th:unless="${prod.fichaTecnicaUrl != null}" class="text-muted small"><i class="bi bi-info-circle"></i> Ficha técnica digital en proceso</span>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm fw-bold" data-bs-dismiss="modal">Cerrar Ventana</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> </div> </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function filtrarProductos(categoria, boton) {
+        // 1. Cambiar el estado visual de los botones
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('btn-success', 'active');
+            btn.classList.add('btn-outline-success');
+        });
+        boton.classList.remove('btn-outline-success');
+        boton.classList.add('btn-success', 'active');
+
+        // 2. Filtrar las tarjetas en la pantalla
+        const productos = document.querySelectorAll('.producto-item');
+        productos.forEach(producto => {
+            const catProducto = producto.getAttribute('data-categoria');
+            if (categoria === 'todos' || catProducto === categoria) {
+                producto.style.display = '';
+            } else {
+                producto.style.display = 'none';
+            }
+        });
+    }
+</script>
+</body>
+</html>

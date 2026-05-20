@@ -49,6 +49,10 @@ public class Producto {
     @Column(name = "url_imagen_producto")
     private String urlImagenProducto;
 
+    // 🌟 NUEVO CAMPO DE STOCK AÑADIDO AQUÍ
+    @Column(name = "stock_fisico")
+    private Integer stockFisico = 0;
+
     // Constructor vacío obligatorio en JPA
     public Producto() {}
 
@@ -94,4 +98,8 @@ public class Producto {
 
     public String getUrlImagenProducto() { return urlImagenProducto; }
     public void setUrlImagenProducto(String urlImagenProducto) { this.urlImagenProducto = urlImagenProducto; }
+
+    // 🌟 GETTER Y SETTER DEL STOCK AÑADIDOS AQUÍ
+    public Integer getStockFisico() { return stockFisico; }
+    public void setStockFisico(Integer stockFisico) { this.stockFisico = stockFisico; }
 }
