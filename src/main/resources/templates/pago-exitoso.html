@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART — Pago Exitoso</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark bg-success shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🌱 AGROSMART</a>
+    </div>
+</nav>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+
+            <!-- Tarjeta principal de éxito -->
+            <div class="card border-0 shadow-sm text-center p-4 mb-4">
+                <div class="mb-3">
+                    <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center"
+                         style="width: 80px; height: 80px;">
+                        <i class="bi bi-check-lg text-white" style="font-size: 2.5rem;"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-success mb-1">¡Pago Aprobado!</h3>
+                <p class="text-muted">Tu orden fue procesada correctamente por Transbank Webpay Plus.</p>
+
+                <!-- Detalles del comprobante -->
+                <div class="bg-light rounded p-4 mt-3 text-start">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3 small">Comprobante de Pago</h6>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Número de Orden</small>
+                            <strong th:text="'#' + ${orden?.idOrden}">N/A</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Estado</small>
+                            <span class="badge bg-success">Pago Confirmado</span>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Código Autorización</small>
+                            <strong class="text-success" th:text="${codigoAuth}">123456</strong>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Monto Cobrado</small>
+                            <strong th:text="'$' + ${#numbers.formatDecimal(montoAprobado, 1, 'POINT', 0, 'COMMA')} + ' CLP'">$0 CLP</strong>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Tarjeta</small>
+                            <strong th:text="'**** **** **** ' + ${ultimos4}">**** ****</strong>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <small class="text-muted d-block">Tipo de Entrega</small>
+                            <strong th:text="${orden?.tipoEntrega == 'retiro_programado' ? 'Retiro en Sucursal' : 'Despacho a Predio'}">
+                                Retiro</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Qué pasa ahora -->
+                <div class="alert alert-success-subtle border border-success rounded mt-3 text-start small" role="alert">
+                    <strong><i class="bi bi-info-circle-fill text-success"></i> ¿Qué pasa ahora?</strong>
+                    <ul class="mb-0 mt-2 ps-3">
+                        <li>Nuestro equipo recibió tu orden y comenzará la preparación.</li>
+                        <li>Un asesor técnico se contactará contigo para coordinar la entrega.</li>
+                        <li>Recibirás confirmación al correo electrónico registrado.</li>
+                    </ul>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="/inventario" class="btn btn-success fw-bold">
+                        <i class="bi bi-basket2-fill me-2"></i> Seguir Comprando
+                    </a>
+                    <a href="/" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-house me-2"></i> Ir al Inicio
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
