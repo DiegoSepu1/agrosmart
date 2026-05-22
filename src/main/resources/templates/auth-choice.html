@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART — Iniciar sesión o registrarse</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .auth-card {
+            max-width: 900px;
+            margin: 50px auto;
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .auth-bg {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+        }
+        .auth-content {
+            padding: 40px;
+            background: white;
+        }
+        .choice-btn {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-crear {
+            background-color: #198754;
+            color: white;
+            border: none;
+        }
+        .btn-crear:hover {
+            background-color: #157347;
+            color: white;
+        }
+        .btn-login {
+            border: 2px solid #198754;
+            color: #198754;
+            background: transparent;
+        }
+        .btn-login:hover {
+            background-color: #f8f9fa;
+            color: #157347;
+            border-color: #157347;
+        }
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            margin-top: 20px;
+        }
+        .benefits-list li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1rem;
+        }
+        .benefits-list i {
+            color: #ffc107;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container">
+    <div class="card auth-card">
+        <div class="row g-0">
+            <!-- Columna Izquierda: Beneficios -->
+            <div class="col-md-5 auth-bg">
+                <div class="mb-4">
+                    <i class="bi bi-shield-lock-fill" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="fw-bold mb-3">¿Sin cuenta aún?</h2>
+                <p class="mb-4">Crea una y accede a beneficios exclusivos para agricultores.</p>
+                
+                <ul class="benefits-list">
+                    <li><i class="bi bi-truck"></i> Despacho prioritario a predios</li>
+                    <li><i class="bi bi-credit-card-2-front"></i> Acceso a línea de crédito agrícola</li>
+                    <li><i class="bi bi-tags-fill"></i> Precios especiales por volumen</li>
+                    <li><i class="bi bi-clock-history"></i> Historial de pedidos y facturación</li>
+                </ul>
+            </div>
+
+            <!-- Columna Derecha: Opciones -->
+            <div class="col-md-7 auth-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Identifícate</h4>
+                    <a th:href="@{/carrito}" class="text-muted"><i class="bi bi-x-lg"></i></a>
+                </div>
+
+                <div class="text-center mb-5">
+                    <p class="text-muted">Para continuar con tu compra, elige cómo prefieres identificarte.</p>
+                </div>
+
+                <div class="d-grid gap-2 px-md-4">
+                    <!-- Opción 1: Crear Cuenta -->
+                    <a th:href="@{/registro}" class="btn btn-crear choice-btn text-decoration-none">
+                        <i class="bi bi-person-plus-fill"></i> Crear una cuenta
+                    </a>
+
+                    <!-- Opción 2: Iniciar Sesión -->
+                    <a th:href="@{/login}" class="btn btn-login choice-btn text-decoration-none">
+                        <i class="bi bi-box-arrow-in-right"></i> Ya tengo cuenta, iniciar sesión
+                    </a>
+
+                    <div class="text-center my-4 position-relative">
+                        <hr>
+                        <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">O CONTINÚA COMO</span>
+                    </div>
+
+                    <!-- Opción 3: Invitado -->
+                    <div class="text-center">
+                        <a th:href="@{/checkout/invitado}" class="text-success fw-bold text-decoration-none d-flex align-items-center justify-content-center gap-2">
+                            Continuar como invitado <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-5 text-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Tus datos están protegidos y seguros.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

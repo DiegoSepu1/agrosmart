@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART — Checkout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .step-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+        }
+        .step-header {
+            background-color: transparent;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background-color: #198754;
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-dark bg-success shadow-sm mb-4">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="/">🌱 AGROSMART</a>
+        <a href="/carrito" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-arrow-left"></i> Volver al carrito
+        </a>
+    </div>
+</nav>
+
+<div class="container mb-5">
+
+    <!-- Título -->
+    <div class="bg-white p-4 rounded shadow-sm mb-4">
+        <h3 class="fw-bold text-dark mb-1"><i class="bi bi-bag-check text-success"></i> Finalizar Compra</h3>
+        <p class="text-muted mb-0 small" th:if="${esInvitado}">Estás comprando como <strong>invitado</strong>.</p>
+        <p class="text-muted mb-0 small" th:unless="${esInvitado}">Comprando como usuario registrado.</p>
+    </div>
+
+    <!-- Alerta de error -->
+    <div th:if="${errorCheckout}" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${errorCheckout}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <form th:action="@{/checkout/procesar}" method="post" id="checkoutForm">
+
+        <div class="row g-4">
+
+            <!-- COLUMNA IZQUIERDA: PASOS -->
+            <div class="col-lg-7">
+
+                <!-- PASO 1: DATOS PERSONALES -->
+                <div class="card step-card">
+                    <div class="card-header step-header">
+                        <h5 class="mb-0 fw-bold"><span class="step-number">1</span> Datos Personales</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Correo electrónico (*)</label>
+                                <input type="email" name="email" id="email" class="form-control" required
+                                       placeholder="ejemplo@correo.com"
+                                       th:value="${agri != null ? session.emailUsuario : ''}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">Teléfono (*)</label>
+                                <input type="text" name="telefono" id="telefono" class="form-control" required
+                                       placeholder="+56 9 1234 5678"
+                                       th:value="${agri != null ? session.telefonoUsuario : ''}">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="nombre" class="form-label">Nombre Completo (*)</label>
+                                <input type="text" name="nombre" id="nombre" class="form-control" required
+                                       placeholder="Juan Pérez"
+                                       th:value="${agri != null ? session.nombreUsuario : ''}">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="rut" class="form-label">RUT / Documento (*)</label>
+                                <input type="text" name="rut" id="rut" class="form-control" required
+                                       placeholder="12.345.678-9"
+                                       th:value="${agri != null ? agri.rut : ''}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 2: ENTREGA -->
+                <div class="card step-card">
+                    <div class="card-header step-header">
+                        <h5 class="mb-0 fw-bold"><span class="step-number">2</span> Método de Entrega</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Opción 1: Retiro en sucursal -->
+                        <div class="form-check border rounded p-3 mb-3" id="card-retiro">
+                            <input class="form-check-input" type="radio" name="tipoEntrega"
+                                   id="opcionRetiro" value="retiro_programado" required
+                                   onchange="toggleEntrega('retiro')">
+                            <label class="form-check-label w-100 ms-2" for="opcionRetiro">
+                                <strong><i class="bi bi-building text-success"></i> Retiro en Sucursal</strong>
+                                <p class="text-muted small mb-0 mt-1">Elige una sucursal y retira tu pedido sin costo de envío.</p>
+                            </label>
+                        </div>
+
+                        <!-- Selector de sucursal -->
+                        <div id="bloque-sucursal" class="ms-4 mb-4 d-none">
+                            <label for="idSucursal" class="form-label">Selecciona Sucursal</label>
+                            <select name="idSucursal" id="idSucursal" class="form-select">
+                                <option value="">— Elige una sucursal —</option>
+                                <option th:each="suc : ${sucursales}"
+                                        th:value="${suc.idSucursal}"
+                                        th:text="${suc.nombre} + ' — ' + ${suc.comuna} + ', ' + ${suc.region}">
+                                    Sucursal
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Opción 2: Despacho a predio -->
+                        <div class="form-check border rounded p-3" id="card-despacho">
+                            <input class="form-check-input" type="radio" name="tipoEntrega"
+                                   id="opcionDespacho" value="despacho_predio"
+                                   onchange="toggleEntrega('despacho')">
+                            <label class="form-check-label w-100 ms-2" for="opcionDespacho">
+                                <strong><i class="bi bi-geo-alt text-success"></i> Despacho a Predio</strong>
+                                <p class="text-muted small mb-0 mt-1">Enviamos directamente a tu campo. Costo sujeto a zona.</p>
+                            </label>
+                        </div>
+
+                        <!-- Campo dirección despacho -->
+                        <div id="bloque-despacho" class="ms-4 mt-3 d-none">
+                            <label for="direccionDespacho" class="form-label">Dirección del Predio</label>
+                            <textarea name="direccionDespacho" id="direccionDespacho"
+                                      class="form-control" rows="2"
+                                      placeholder="Ej: Camino El Monte km 5, Valle del Elqui"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3: PAGO -->
+                <div class="card step-card">
+                    <div class="card-header step-header">
+                        <h5 class="mb-0 fw-bold"><span class="step-number">3</span> Método de Pago</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3 p-3 border rounded bg-light">
+                            <i class="bi bi-credit-card fs-2 text-success"></i>
+                            <div>
+                                <p class="fw-bold mb-0">Webpay Plus — Transbank</p>
+                                <small class="text-muted">Pago seguro con tarjetas de débito/crédito chilenas.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: RESUMEN -->
+            <div class="col-lg-5">
+                <div class="bg-white rounded shadow-sm p-4 sticky-top" style="top: 20px;">
+                    <h5 class="fw-bold mb-3 border-bottom pb-2">Resumen de Compra</h5>
+
+                    <!-- Ítems -->
+                    <div th:each="item : ${carrito.items}" class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                        <img th:src="${item.urlImagen != null ? item.urlImagen : 'https://dummyimage.com/60x60/e2e8f0/64748b&text=IMG'}"
+                             class="rounded border me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                        <div class="flex-grow-1">
+                            <p class="fw-bold mb-0 small" th:text="${item.nombre}">Producto</p>
+                            <small class="text-muted" th:text="'Cant: ' + ${item.cantidad}">x1</small>
+                        </div>
+                        <span class="fw-bold small text-success"
+                              th:text="'$' + ${#numbers.formatDecimal(item.subtotalClp, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Subtotal productos</span>
+                        <span class="small fw-bold"
+                              th:text="'$' + ${#numbers.formatDecimal(carrito.totalClp, 1, 'POINT', 0, 'COMMA')}">$0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted small">Costo de envío</span>
+                        <span class="small text-success fw-bold">GRATIS</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-4 p-3 bg-light rounded border-start border-success border-4">
+                        <span class="fw-bold">TOTAL FINAL</span>
+                        <div class="text-end">
+                            <h4 class="fw-bold text-success mb-0"
+                                th:text="'$' + ${#numbers.formatDecimal(carrito.totalClp, 1, 'POINT', 0, 'COMMA')} + ' CLP'">$0</h4>
+                            <small class="text-muted" style="font-size: 11px;"
+                                   th:text="'≈ USD $' + ${#numbers.formatDecimal(carrito.totalUsd, 1, 'POINT', 2, 'COMMA')}">USD 0</small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg fw-bold" id="btnPagar">
+                            <i class="bi bi-lock-fill me-2"></i> Confirmar y Pagar
+                        </button>
+                        <p class="text-center text-muted small mb-0 mt-2">
+                            Al confirmar, aceptas nuestros <a href="#" class="text-success">Términos y Condiciones</a>.
+                        </p>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <img src="https://static.transbank.cl/common/img/webpay-plus.png" alt="Webpay Plus" style="height: 30px;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleEntrega(tipo) {
+        const bloqueSucursal = document.getElementById('bloque-sucursal');
+        const bloqueDespacho = document.getElementById('bloque-despacho');
+        const cardRetiro     = document.getElementById('card-retiro');
+        const cardDespacho   = document.getElementById('card-despacho');
+
+        if (tipo === 'retiro') {
+            bloqueSucursal.classList.remove('d-none');
+            bloqueDespacho.classList.add('d-none');
+            cardRetiro.classList.add('border-success', 'bg-success-subtle');
+            cardDespacho.classList.remove('border-success', 'bg-success-subtle');
+            document.getElementById('idSucursal').required = true;
+            document.getElementById('direccionDespacho').required = false;
+        } else {
+            bloqueSucursal.classList.add('d-none');
+            bloqueDespacho.classList.remove('d-none');
+            cardDespacho.classList.add('border-success', 'bg-success-subtle');
+            cardRetiro.classList.remove('border-success', 'bg-success-subtle');
+            document.getElementById('idSucursal').required = false;
+            document.getElementById('direccionDespacho').required = true;
+        }
+    }
+
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('btnPagar');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Redirigiendo a Webpay...';
+        // Usar setTimeout para no bloquear el evento submit inmediatamente
+        setTimeout(() => {
+            btn.disabled = true;
+        }, 10);
+    });
+</script>
+</body>
+</html>

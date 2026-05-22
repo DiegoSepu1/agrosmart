@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART - Panel de Administración</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-success" href="/"><i class="bi bi-speedometer2"></i> AGROSMART <span class="text-white fw-light">| Panel Interno</span></a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/inventario" class="btn btn-sm btn-outline-success"><i class="bi bi-shop"></i> Ver Tienda</a>
+
+            <select class="form-select form-select-sm bg-secondary text-white border-0 fw-bold" id="selectorRol" onchange="cambiarRol()">
+                <option value="admin" selected>👨‍💻 Rol: Admin TI</option>
+                <option value="asesor">👔 Rol: Asesor Técnico</option>
+                <option value="bodega">📦 Rol: Jefe de Almacén</option>
+                <option value="cobranzas">💰 Rol: Enc. Cobranzas</option>
+            </select>
+
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mb-5">
+
+    <div class="bg-white p-4 rounded shadow-sm d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Mantenedor de Productos</h2>
+            <p class="text-muted mb-0 small">Control de stock centralizado, categorías y visación de créditos agrícolas.</p>
+        </div>
+        <button id="btnAgregarGlobal" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto" onclick="prepararCreacion()">
+            <i class="bi bi-plus-lg"></i> Agregar Nuevo Producto
+        </button>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-secondary text-white fw-bold py-3">
+            <i class="bi bi-table"></i> Registros de Inventario Activos
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                    <tr>
+                        <th class="ps-3">ID</th>
+                        <th>Código</th>
+                        <th>Categoría</th>
+                        <th>Nombre del Artículo</th>
+                        <th>Base (USD)</th>
+                        <th>Final (CLP)</th>
+                        <th>Crédito</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="prod : ${productos}">
+                        <td class="ps-3 fw-bold text-secondary" th:text="${prod.idProducto}">1</td>
+                        <td class="fw-bold text-dark" th:text="${prod.codigoProducto}">COD-000</td>
+                        <td>
+                            <span class="badge bg-dark text-uppercase" th:text="${prod.categoria}">CATEGORIA</span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold text-dark" th:text="${prod.nombre}">Nombre del Producto</div>
+                            <small class="text-muted d-block text-truncate" style="max-width: 300px;" th:text="${prod.descripcion}">Descripción...</small>
+                        </td>
+                        <td th:text="'$' + ${#numbers.formatDecimal(prod.precioBaseUsd, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td class="text-success fw-bold" th:text="'$' + ${#numbers.formatDecimal(prod.precioClpCache, 1, 'POINT', 0, 'COMMA')}">0</td>
+                        <td>
+                            <span th:if="${prod.requiereAprobacionCredito}" class="badge bg-warning text-dark"><i class="bi bi-shield-lock-fill"></i> Requiere Visación</span>
+                            <span th:unless="${prod.requiereAprobacionCredito}" class="badge bg-success-subtle text-success-emphasis">Directo</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm vista-admin" role="group">
+                                <button class="btn btn-outline-warning" title="Editar" th:data-id="${prod.idProducto}" th:data-codigo="${prod.codigoProducto}" th:data-categoria="${prod.categoria}" th:data-nombre="${prod.nombre}" th:data-desc="${prod.descripcion}" th:data-precio="${prod.precioBaseUsd}" th:data-img="${prod.urlImagenProducto}" th:data-credito="${prod.requiereAprobacionCredito}" onclick="prepararEdicion(this)">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" th:onclick="'eliminarProducto(' + ${prod.idProducto} + ', this)'" title="Eliminar">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
+
+                            <button class="btn btn-outline-info btn-sm fw-bold vista-bodega" style="display: none;" title="Ajustar Stock Físico"
+                                    th:onclick="'ajustarStock(' + ${prod.idProducto} + ', ' + (${prod.stockFisico != null ? prod.stockFisico : 0}) + ')'">
+                                <i class="bi bi-box-seam"></i> Stock (<span th:text="${prod.stockFisico != null ? prod.stockFisico : 0}">0</span>)
+                            </button>
+
+                            <button th:if="${prod.requiereAprobacionCredito}" class="btn btn-outline-success btn-sm fw-bold vista-cobranzas" style="display: none;" title="Aprobar Línea de Crédito">
+                                <i class="bi bi-check-circle-fill"></i> Aprobar
+                            </button>
+                            <span th:unless="${prod.requiereAprobacionCredito}" class="text-muted small vista-cobranzas" style="display: none;">
+        No requiere
+    </span>
+
+                            <span class="text-muted small vista-asesor" style="display: none;">
+        Solo lectura
+    </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAgregarProducto" tabindex="-1" aria-labelledby="modalAgregarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="modalAgregarLabel"><i class="bi bi-plus-circle-fill"></i> Ingresar Nuevo Artículo al Inventario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formNuevoProducto" onsubmit="guardarProducto(event)">
+                <input type="hidden" id="idProducto">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Código del Producto</label>
+                            <input type="text" class="form-control" id="codigoProducto" placeholder="Ej: DRON-T50" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Categoría</label>
+                            <select class="form-select" id="categoria" required>
+                                <option value="" selected disabled>Selecciona una opción...</option>
+                                <option value="dron">Dron Agrícola</option>
+                                <option value="sensor">Sensor IoT</option>
+                                <option value="repuesto">Repuesto / Válvula</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre Completo</label>
+                            <input type="text" class="form-control" id="nombre" placeholder="Ej: Sensor de Humedad de Suelo Pro" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Descripción Técnica</label>
+                            <textarea class="form-control" id="descripcion" rows="3" placeholder="Detalla las características principales del bulto..." required></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Precio Base (USD)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">USD $</span>
+                                <input type="number" class="form-control" id="precioBaseUsd" placeholder="0.00" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">URL de la Imagen (Opcional)</label>
+                            <input type="url" class="form-control" id="urlImagenProducto" placeholder="https://ejemplo.com/foto.jpg">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Línea de Crédito</label>
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="requiereAprobacionCredito">
+                                <label class="form-check-label text-muted" for="requiereAprobacionCredito">Requiere visación de Cobranzas</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm fw-bold"><i class="bi bi-save"></i> Guardar en BD</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Función de eliminación (ya la teníamos)
+    function eliminarProducto(id, boton) {
+        if (confirm('¿Estás seguro de que deseas eliminar este producto del inventario?')) {
+            fetch('/api/inventario/' + id, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) {
+                        const fila = boton.closest('tr');
+                        fila.style.transition = 'all 0.5s ease';
+                        fila.style.opacity = '0';
+                        setTimeout(() => fila.remove(), 500);
+                    } else {
+                        alert('Error al intentar eliminar el producto.');
+                    }
+                }).catch(err => alert('Error de conexión de red.'));
+        }
+    }
+    function prepararCreacion() {
+        // 1. Devolvemos el título original de "Crear"
+        document.getElementById('modalAgregarLabel').innerHTML = '<i class="bi bi-plus-circle-fill"></i> Ingresar Nuevo Artículo al Inventario';
+
+        // 2. Limpiamos todos los campos visibles de un solo golpe
+        document.getElementById('formNuevoProducto').reset();
+
+        // 3. Vaciamos el ID oculto (CRÍTICO para que Spring Boot sepa que es uno nuevo y no haga un Update)
+        document.getElementById('idProducto').value = '';
+    }
+    function prepararEdicion(boton) {
+        // 1. Cambiamos el título del modal
+        document.getElementById('modalAgregarLabel').innerHTML = '<i class="bi bi-pencil-square"></i> Editar Artículo del Inventario';
+
+        // 2. Extraemos los datos de los atributos 'data-' del botón y los inyectamos en el formulario
+        document.getElementById('idProducto').value = boton.getAttribute('data-id');
+        document.getElementById('codigoProducto').value = boton.getAttribute('data-codigo');
+        document.getElementById('categoria').value = boton.getAttribute('data-categoria');
+        document.getElementById('nombre').value = boton.getAttribute('data-nombre');
+        document.getElementById('descripcion').value = boton.getAttribute('data-desc');
+        document.getElementById('precioBaseUsd').value = boton.getAttribute('data-precio');
+
+        // Manejamos la imagen por si viene nula
+        const imagen = boton.getAttribute('data-img');
+        document.getElementById('urlImagenProducto').value = (imagen === 'null' || !imagen) ? '' : imagen;
+
+        // Convertimos el texto a valor booleano (true/false) para el switch de crédito
+        document.getElementById('requiereAprobacionCredito').checked = (boton.getAttribute('data-credito') === 'true');
+
+        // 3. Abrimos el modal
+        const modal = new bootstrap.Modal(document.getElementById('modalAgregarProducto'));
+        modal.show();
+    }
+    // Nueva Función para enviar el POST mediante Fetch
+    function guardarProducto(event) {
+        event.preventDefault();
+
+        const usd = parseFloat(document.getElementById('precioBaseUsd').value);
+        const tipoCambio = 950;
+        const clpCalculado = Math.round(usd * tipoCambio);
+
+        // Capturamos el ID oculto. Si está vacío, valdrá null (Creación)
+        const idExistente = document.getElementById('idProducto').value;
+
+        const productoData = {
+            idProducto: idExistente ? parseInt(idExistente) : null, // 🌟 CLAVE: Si lleva ID, JPA edita; si no, crea.
+            codigoProducto: document.getElementById('codigoProducto').value,
+            categoria: document.getElementById('categoria').value,
+            nombre: document.getElementById('nombre').value,
+            descripcion: document.getElementById('descripcion').value,
+            precioBaseUsd: usd,
+            precioClpCache: clpCalculado,
+            tipoCambioUsado: tipoCambio,
+            requiereAprobacionCredito: document.getElementById('requiereAprobacionCredito').checked,
+            urlImagenProducto: document.getElementById('urlImagenProducto').value || null
+        };
+
+        fetch('/api/inventario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productoData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('¡Inventario actualizado con éxito en MySQL!');
+                    window.location.reload();
+                } else {
+                    alert('Error en el servidor al intentar procesar el formulario.');
+                }
+            })
+            .catch(err => console.error('Error de red:', err));
+    }
+</script>
+<script>
+    function cambiarRol() {
+        const rolSeleccionado = document.getElementById('selectorRol').value;
+
+        // 1. Ocultar o mostrar el botón global de agregar producto
+        document.getElementById('btnAgregarGlobal').style.display = (rolSeleccionado === 'admin') ? 'block' : 'none';
+
+        // 2. Apagar todas las vistas específicas en la tabla
+        document.querySelectorAll('.vista-admin, .vista-bodega, .vista-cobranzas, .vista-asesor').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // 3. Encender solo los botones que le corresponden al rol actual
+        document.querySelectorAll('.vista-' + rolSeleccionado).forEach(el => {
+            // Si es un div (grupo de botones), lo muestra como inline-block, si no, como inline
+            el.style.display = 'inline-block';
+        });
+    }
+
+    // Ejecutamos la función apenas carga la página para que se limpie todo
+    document.addEventListener("DOMContentLoaded", function() {
+        cambiarRol();
+    });
+    function ajustarStock(id, stockActual) {
+        // 1. Pedimos el nuevo valor por pantalla
+        const nuevoStock = prompt('Stock actual en bodega: ' + stockActual + '\n\nIngrese el nuevo recuento físico total:', stockActual);
+
+        // 2. Validamos que no haya cancelado y que sea un número válido
+        if (nuevoStock !== null && nuevoStock.trim() !== "" && !isNaN(nuevoStock)) {
+
+            // 3. Mandamos la orden al backend vía PATCH
+            fetch('/api/inventario/' + id + '/stock?cantidad=' + parseInt(nuevoStock), {
+                method: 'PATCH'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('¡Stock sincronizado exitosamente en la base de datos!');
+                        window.location.reload(); // Recarga para ver el nuevo número en el botón
+                    } else {
+                        alert('Error en el servidor al intentar actualizar el stock.');
+                    }
+                })
+                .catch(err => console.error('Error de red:', err));
+        }
+    }
+</script>
+</body>
+</html>

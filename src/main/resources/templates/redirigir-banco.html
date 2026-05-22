@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Conectando con el banco...</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="min-height: 100vh;">
+
+    <!--
+        Esta página se muestra brevemente mientras se hace el POST automático a Transbank.
+        Transbank requiere que el token se envíe mediante un formulario POST (no redirect GET).
+    -->
+
+    <div class="text-center">
+        <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <h5 class="text-dark fw-bold">Conectando con Webpay...</h5>
+        <p class="text-muted small">Serás redirigido al sitio seguro de Transbank. No cierres esta ventana.</p>
+        
+        <!-- Botón de respaldo por si falla el auto-submit -->
+        <div id="fallback-button" class="mt-4 d-none">
+            <p class="text-muted small">Si no eres redirigido en unos segundos, haz clic aquí:</p>
+            <button type="button" onclick="document.getElementById('formWebpay').submit()" class="btn btn-success fw-bold">
+                Ir a Webpay ahora
+            </button>
+        </div>
+
+        <p class="text-muted mt-4" style="font-size: 11px;">🔒 Conexión segura SSL</p>
+    </div>
+
+    <!-- Formulario auto-submit hacia Transbank -->
+    <form id="formWebpay" th:action="${tbUrl}" method="post">
+        <input type="hidden" name="token_ws" th:value="${tbToken}">
+    </form>
+
+    <script>
+        // Se envía automáticamente al cargar la página
+        window.onload = function() {
+            // Mostrar el botón de respaldo después de 3 segundos si no se ha ido de la página
+            setTimeout(function() {
+                document.getElementById('fallback-button').classList.remove('d-none');
+            }, 3000);
+
+            console.log("Enviando formulario a Transbank...");
+            document.getElementById('formWebpay').submit();
+        };
+    </script>
+</body>
+</html>
