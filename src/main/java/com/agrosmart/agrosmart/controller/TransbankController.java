@@ -52,7 +52,8 @@ public class TransbankController {
      * C) Timeout/Cancelación por usuario: TBK_TOKEN + TBK_ORDEN_COMPRA + TBK_ID_SESION (sin token_ws)
      * D) Doble envío:     token_ws + TBK_TOKEN (no confirmar, el usuario volvió atrás)
      */
-    @PostMapping("/retorno")
+    // ⬇️ ESTA ES LA ÚNICA LÍNEA QUE CAMBIA ⬇️
+    @RequestMapping("/retorno")
     public String retornoTransbank(
             @RequestParam(value = "token_ws",        required = false) String tokenWs,
             @RequestParam(value = "TBK_TOKEN",       required = false) String tbkToken,

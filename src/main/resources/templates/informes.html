@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART - Informes de Ventas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .kpi-card { border: none; border-radius: .75rem; transition: transform .15s ease; }
+        .kpi-card:hover { transform: translateY(-3px); }
+        .kpi-icon { font-size: 1.8rem; opacity: .85; }
+        .kpi-value { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+        .kpi-label { font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+        .chart-card { border: none; border-radius: .75rem; }
+        .badge-estado { font-size: .72rem; }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-success" href="/"><i class="bi bi-speedometer2"></i> AGROSMART <span class="text-white fw-light">| Panel Interno</span></a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/inventario/admin" class="btn btn-sm btn-outline-success"><i class="bi bi-arrow-left"></i> Volver al Panel</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4 mb-5">
+
+    <div class="bg-white p-4 rounded shadow-sm d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-graph-up-arrow text-success"></i> Informes de Ventas</h2>
+            <p class="text-muted mb-0 small">Panel de indicadores de órdenes, ventas e inventario.</p>
+        </div>
+        <button onclick="window.print()" class="btn btn-sm btn-outline-secondary"><i class="bi bi-printer"></i> Imprimir</button>
+    </div>
+
+    <!-- ============ FILA 1: KPIs PRINCIPALES ============ -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3 col-sm-6">
+            <div class="card kpi-card shadow-sm text-white bg-primary h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label">Total Órdenes</div>
+                        <div class="kpi-value" th:text="${totalOrdenes}">0</div>
+                    </div>
+                    <i class="bi bi-receipt kpi-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card kpi-card shadow-sm text-white bg-success h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label">Órdenes Aprobadas</div>
+                        <div class="kpi-value" th:text="${ordenesAprobadas}">0</div>
+                    </div>
+                    <i class="bi bi-check2-circle kpi-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card kpi-card shadow-sm text-white bg-info h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label">Ventas Totales (CLP)</div>
+                        <div class="kpi-value">$<span th:text="${#numbers.formatInteger(totalVentasClp, 0, 'POINT')}">0</span></div>
+                    </div>
+                    <i class="bi bi-cash-stack kpi-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="card kpi-card shadow-sm text-white bg-dark h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label">Ventas Totales (USD)</div>
+                        <div class="kpi-value">$<span th:text="${#numbers.formatDecimal(totalVentasUsd, 1, 'POINT', 2, 'COMMA')}">0</span></div>
+                    </div>
+                    <i class="bi bi-currency-dollar kpi-icon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILA 2: KPIs SECUNDARIOS ============ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-hourglass-split text-warning kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1" th:text="${ordenesPendientes}">0</div>
+                    <div class="kpi-label text-muted">Pendientes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-x-circle text-danger kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1" th:text="${ordenesCanceladas}">0</div>
+                    <div class="kpi-label text-muted">Canceladas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-receipt-cutoff text-primary kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1">$<span th:text="${#numbers.formatInteger(ticketPromedio, 0, 'POINT')}">0</span></div>
+                    <div class="kpi-label text-muted">Ticket Promedio</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-percent text-success kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1"><span th:text="${tasaConversion}">0</span>%</div>
+                    <div class="kpi-label text-muted">Conversión</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-people text-info kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1" th:text="${clientesUnicos}">0</div>
+                    <div class="kpi-label text-muted">Clientes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6">
+            <div class="card kpi-card shadow-sm bg-white h-100">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-box-seam text-dark kpi-icon"></i>
+                    <div class="kpi-value text-dark mt-1" th:text="${unidadesVendidas}">0</div>
+                    <div class="kpi-label text-muted">Unidades</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILA 3: GRÁFICOS ============ -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-7">
+            <div class="card chart-card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-line text-success"></i> Ventas por mes (CLP) — últimos 6 meses</h6>
+                    <canvas id="ventasMesChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card chart-card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart text-success"></i> Estado de las órdenes</h6>
+                    <canvas id="estadoChart" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILA 4: TABLAS + ENTREGA ============ -->
+    <div class="row g-3 mb-4">
+        <!-- Top productos -->
+        <div class="col-lg-7">
+            <div class="card chart-card shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-trophy text-warning"></i> Productos más vendidos</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Producto</th>
+                                    <th class="text-end">Unidades</th>
+                                    <th class="text-end">Ingresos (CLP)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="p, iter : ${topProductos}">
+                                    <td class="text-muted" th:text="${iter.count}">1</td>
+                                    <td class="fw-semibold" th:text="${p.nombre}">Producto</td>
+                                    <td class="text-end" th:text="${p.unidades}">0</td>
+                                    <td class="text-end">$<span th:text="${#numbers.formatInteger(p.ingresos, 0, 'POINT')}">0</span></td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(topProductos)}">
+                                    <td colspan="4" class="text-center text-muted py-3">Aún no hay ventas registradas.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Tipo de entrega + stock -->
+        <div class="col-lg-5">
+            <div class="card chart-card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-truck text-success"></i> Modalidad de entrega</h6>
+                    <canvas id="entregaChart" height="140"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card shadow-sm">
+                <div class="card-body">
+                    <h6 class="fw-bold text-dark mb-3"><i class="bi bi-box text-success"></i> Estado del inventario</h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Productos activos</span>
+                        <span class="fw-bold" th:text="${totalProductos}">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Stock bajo (≤ 5)</span>
+                        <span class="fw-bold text-warning" th:text="${productosBajoStock}">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small">Sin stock</span>
+                        <span class="fw-bold text-danger" th:text="${productosSinStock}">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILA 5: ÚLTIMAS ÓRDENES ============ -->
+    <div class="card chart-card shadow-sm">
+        <div class="card-body">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-clock-history text-success"></i> Últimas órdenes</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Entrega</th>
+                            <th>Estado</th>
+                            <th class="text-end">Total (CLP)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="o : ${ultimasOrdenes}">
+                            <td class="text-muted" th:text="${o.idOrden}">0</td>
+                            <td th:text="${o.clienteNombre != null ? o.clienteNombre : 'Invitado'}">Cliente</td>
+                            <td class="small text-muted" th:text="${o.fechaCreacion != null ? #temporals.format(o.fechaCreacion, 'dd-MM-yyyy HH:mm') : '-'}">-</td>
+                            <td class="small" th:text="${o.tipoEntrega == 'retiro_programado' ? 'Retiro' : 'Despacho'}">-</td>
+                            <td>
+                                <span class="badge badge-estado"
+                                      th:classappend="${(o.estado == 'pago_confirmado' or o.webpayStatus == 'aprobado') ? 'bg-success' : ((o.estado == 'cancelada' or o.webpayStatus == 'rechazado') ? 'bg-danger' : 'bg-warning text-dark')}"
+                                      th:text="${o.estado}">estado</span>
+                            </td>
+                            <td class="text-end">$<span th:text="${o.totalClp != null ? #numbers.formatInteger(o.totalClp, 0, 'POINT') : 0}">0</span></td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(ultimasOrdenes)}">
+                            <td colspan="6" class="text-center text-muted py-3">No hay órdenes registradas.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const mesesLabels = /*[[${mesesLabels}]]*/ [];
+    const mesesData   = /*[[${mesesData}]]*/ [];
+    const ordenesAprobadas  = /*[[${ordenesAprobadas}]]*/ 0;
+    const ordenesPendientes = /*[[${ordenesPendientes}]]*/ 0;
+    const ordenesCanceladas = /*[[${ordenesCanceladas}]]*/ 0;
+    const retiroCount   = /*[[${retiroCount}]]*/ 0;
+    const despachoCount = /*[[${despachoCount}]]*/ 0;
+    /*]]>*/
+
+    const clpFormatter = (v) => '$' + Number(v).toLocaleString('es-CL');
+
+    // Ventas por mes
+    new Chart(document.getElementById('ventasMesChart'), {
+        type: 'bar',
+        data: {
+            labels: mesesLabels,
+            datasets: [{
+                label: 'Ventas (CLP)',
+                data: mesesData,
+                backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: (c) => clpFormatter(c.raw) } }
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: (v) => clpFormatter(v) } } }
+        }
+    });
+
+    // Estado de órdenes
+    new Chart(document.getElementById('estadoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Aprobadas', 'Pendientes', 'Canceladas'],
+            datasets: [{
+                data: [ordenesAprobadas, ordenesPendientes, ordenesCanceladas],
+                backgroundColor: ['#198754', '#ffc107', '#dc3545']
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
+
+    // Modalidad de entrega
+    new Chart(document.getElementById('entregaChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Retiro en sucursal', 'Despacho a predio'],
+            datasets: [{
+                data: [retiroCount, despachoCount],
+                backgroundColor: ['#0d6efd', '#20c997']
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom' } } }
+    });
+</script>
+</body>
+</html>

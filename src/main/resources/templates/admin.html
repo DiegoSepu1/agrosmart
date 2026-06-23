@@ -33,9 +33,14 @@
             <h2 class="fw-bold text-dark mb-1">Mantenedor de Productos</h2>
             <p class="text-muted mb-0 small">Control de stock centralizado, categorías y visación de créditos agrícolas.</p>
         </div>
-        <button id="btnAgregarGlobal" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto" onclick="prepararCreacion()">
-            <i class="bi bi-plus-lg"></i> Agregar Nuevo Producto
-        </button>
+        <div class="d-flex gap-2">
+            <a href="/inventario/informes" class="btn btn-info fw-bold text-white">
+                <i class="bi bi-bar-chart-line"></i> Ver Informes de Ventas
+            </a>
+            <button id="btnAgregarGlobal" class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAgregarProducto" onclick="prepararCreacion()">
+                <i class="bi bi-plus-lg"></i> Agregar Nuevo Producto
+            </button>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0">

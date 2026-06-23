@@ -22,8 +22,8 @@ public class CarritoItem implements Serializable {
     public CarritoItem() {}
 
     public CarritoItem(Integer idProducto, String codigoProducto, String nombre,
-                    String urlImagen, Double precioUnitarioClp, Double precioUnitarioUsd,
-                    Double tipoCambioUsado, int cantidad) {
+                       String urlImagen, Double precioUnitarioClp, Double precioUnitarioUsd,
+                       Double tipoCambioUsado, int cantidad) {
         this.idProducto = idProducto;
         this.codigoProducto = codigoProducto;
         this.nombre = nombre;

@@ -405,6 +405,9 @@ CREATE TABLE `sucursal` (
 
 LOCK TABLES `sucursal` WRITE;
 /*!40000 ALTER TABLE `sucursal` DISABLE KEYS */;
+INSERT INTO `sucursal` (`id_sucursal`, `nombre`, `region`, `comuna`, `direccion`, `telefono`, `responsable_nombre`) VALUES
+(1, 'Sucursal Central', 'Región Metropolitana', 'Santiago', 'Av. Principal 123', '+56912345678', 'Juan Pérez'),
+(2, 'Sucursal Sur', 'Región del Biobío', 'Concepción', 'Calle Comercio 456', '+56987654321', 'María González');
 /*!40000 ALTER TABLE `sucursal` ENABLE KEYS */;
 UNLOCK TABLES;
 
