@@ -1,5 +1,6 @@
 package com.agrosmart.agrosmart.controller;
 
+import com.agrosmart.agrosmart.config.Roles;
 import com.agrosmart.agrosmart.entity.Usuario;
 import com.agrosmart.agrosmart.service.UsuarioService;
 import jakarta.servlet.http.HttpSession;
@@ -23,9 +24,14 @@ public class AuthController {
     @GetMapping("/login")
     public String mostrarLogin(HttpSession session) {
         if (session.getAttribute("idUsuario") != null) {
-            return "redirect:/checkout";
+            return destinoSegunRol((String) session.getAttribute("rolUsuario"));
         }
         return "login";
+    }
+
+    /** El admin va a su panel; el cliente continúa al checkout. */
+    private String destinoSegunRol(String rol) {
+        return Roles.esAdmin(rol) ? "redirect:/inventario/admin" : "redirect:/checkout";
     }
 
     @PostMapping("/login")
@@ -36,7 +42,7 @@ public class AuthController {
         Usuario usuario = usuarioService.login(email, password, session);
 
         if (usuario != null) {
-            return "redirect:/checkout";
+            return destinoSegunRol(usuario.getRol());
         } else {
             redirectAttributes.addFlashAttribute("errorLogin", "Credenciales inválidas.");
             return "redirect:/login";

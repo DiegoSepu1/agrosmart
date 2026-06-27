@@ -14,6 +14,9 @@
         <a class="navbar-brand fw-bold" href="/">🌱 AGROSMART</a>
         <div class="d-flex align-items-center text-white gap-3">
             <span class="small d-none d-md-inline text-white-50">API Sincronizada con Mindicador.cl</span>
+            <a th:if="${session.idAgricultor != null}" href="/mis-compras" class="text-white text-decoration-none small"><i class="bi bi-bag-check"></i> Mis compras</a>
+            <a th:if="${session.idUsuario == null}" href="/login" class="text-white text-decoration-none small"><i class="bi bi-person"></i> Ingresar</a>
+            <a th:if="${session.idUsuario != null}" href="/logout" class="text-white text-decoration-none small"><i class="bi bi-box-arrow-right"></i> Salir</a>
             <a href="/carrito" class="text-white text-decoration-none position-relative">
                 <i class="bi bi-cart3 fs-4"></i>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
@@ -75,6 +76,13 @@ public class InventarioViewController {
         BigDecimal totalVentasUsd = BigDecimal.ZERO;
         BigDecimal ventasMesActual = BigDecimal.ZERO;
 
+        // Cortes temporales adicionales (requisito 4.b: diario y anual)
+        BigDecimal ventasHoy = BigDecimal.ZERO;
+        BigDecimal ventasAnioActual = BigDecimal.ZERO;
+        int ordenesHoy = 0;
+        LocalDate hoy = LocalDate.now();
+        int anioActual = hoy.getYear();
+
         Set<String> clientesUnicos = new HashSet<>();
         Set<Integer> idOrdenesAprobadas = new HashSet<>();
 
@@ -129,6 +137,16 @@ public class InventarioViewController {
                     }
                     if (ym.equals(mesActual)) {
                         ventasMesActual = ventasMesActual.add(orden.getTotalClp());
+                    }
+
+                    // Corte diario y anual
+                    LocalDate fechaDia = fecha.toLocalDate();
+                    if (fechaDia.isEqual(hoy)) {
+                        ventasHoy = ventasHoy.add(orden.getTotalClp());
+                        ordenesHoy++;
+                    }
+                    if (fechaDia.getYear() == anioActual) {
+                        ventasAnioActual = ventasAnioActual.add(orden.getTotalClp());
                     }
                 }
             } else if (cancelada) {
@@ -187,6 +205,12 @@ public class InventarioViewController {
                 .filter(p -> p.getStockFisico() != null && p.getStockFisico() > 0 && p.getStockFisico() <= 5)
                 .count();
 
+        // Lista detallada de productos en stock crítico (requisito 4.c): sin stock o <= 5
+        List<Producto> productosStockCritico = productos.stream()
+                .filter(p -> p.getStockFisico() == null || p.getStockFisico() <= 5)
+                .sorted(Comparator.comparingInt(p -> p.getStockFisico() == null ? 0 : p.getStockFisico()))
+                .collect(Collectors.toList());
+
         // ====== DATOS PARA GRÁFICOS (listas paralelas) ======
         List<String> mesesLabels = new ArrayList<>();
         List<Long> mesesData = new ArrayList<>();
@@ -216,6 +240,13 @@ public class InventarioViewController {
         model.addAttribute("totalProductos", totalProductos);
         model.addAttribute("productosSinStock", productosSinStock);
         model.addAttribute("productosBajoStock", productosBajoStock);
+        model.addAttribute("productosStockCritico", productosStockCritico);
+
+        // Cortes temporales (requisito 4.b)
+        model.addAttribute("ventasHoy", ventasHoy.longValue());
+        model.addAttribute("ordenesHoy", ordenesHoy);
+        model.addAttribute("ventasAnioActual", ventasAnioActual.longValue());
+        model.addAttribute("anioActual", anioActual);
 
         model.addAttribute("topProductos", topProductos);
         model.addAttribute("ultimasOrdenes", ultimasOrdenes);

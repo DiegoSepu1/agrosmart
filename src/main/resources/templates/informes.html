@@ -85,6 +85,46 @@
         </div>
     </div>
 
+    <!-- ============ FILA 1.b: CORTES TEMPORALES (diario / mensual / anual) ============ -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-4 col-sm-6">
+            <div class="card kpi-card shadow-sm bg-white h-100 border-start border-4 border-success">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label text-muted">Ventas de hoy (CLP)</div>
+                        <div class="kpi-value text-success">$<span th:text="${#numbers.formatInteger(ventasHoy, 0, 'POINT')}">0</span></div>
+                        <div class="small text-muted"><span th:text="${ordenesHoy}">0</span> órdenes hoy</div>
+                    </div>
+                    <i class="bi bi-calendar-day kpi-icon text-success"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="card kpi-card shadow-sm bg-white h-100 border-start border-4 border-primary">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label text-muted">Ventas del mes (CLP)</div>
+                        <div class="kpi-value text-primary">$<span th:text="${#numbers.formatInteger(ventasMesActual, 0, 'POINT')}">0</span></div>
+                        <div class="small text-muted">Mes en curso</div>
+                    </div>
+                    <i class="bi bi-calendar-month kpi-icon text-primary"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="card kpi-card shadow-sm bg-white h-100 border-start border-4 border-dark">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="kpi-label text-muted">Ventas del año (CLP)</div>
+                        <div class="kpi-value text-dark">$<span th:text="${#numbers.formatInteger(ventasAnioActual, 0, 'POINT')}">0</span></div>
+                        <div class="small text-muted">Año <span th:text="${anioActual}">2026</span></div>
+                    </div>
+                    <i class="bi bi-calendar3 kpi-icon text-dark"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ FILA 2: KPIs SECUNDARIOS ============ -->
     <div class="row g-3 mb-4">
         <div class="col-md-2 col-sm-4 col-6">
@@ -220,6 +260,41 @@
                         <span class="fw-bold text-danger" th:text="${productosSinStock}">0</span>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FILA 4.b: INFORME DE STOCK CRÍTICO ============ -->
+    <div class="card chart-card shadow-sm mb-4 border-top border-4 border-danger">
+        <div class="card-body">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Informe de stock crítico (≤ 5 unidades)</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th class="text-end">Stock actual</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${productosStockCritico}">
+                            <td class="fw-bold text-secondary" th:text="${p.codigoProducto}">COD</td>
+                            <td class="fw-semibold" th:text="${p.nombre}">Producto</td>
+                            <td><span class="badge bg-dark text-uppercase" th:text="${p.categoria}">cat</span></td>
+                            <td class="text-end fw-bold" th:text="${p.stockFisico != null ? p.stockFisico : 0}">0</td>
+                            <td class="text-center">
+                                <span th:if="${p.stockFisico == null or p.stockFisico <= 0}" class="badge bg-danger">Sin stock</span>
+                                <span th:if="${p.stockFisico != null and p.stockFisico > 0 and p.stockFisico <= 5}" class="badge bg-warning text-dark">Stock bajo</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(productosStockCritico)}">
+                            <td colspan="5" class="text-center text-success py-3"><i class="bi bi-check-circle"></i> No hay productos en stock crítico.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

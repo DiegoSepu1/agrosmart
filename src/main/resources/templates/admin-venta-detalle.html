@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGROSMART - Detalle de Venta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold text-success" href="/"><i class="bi bi-speedometer2"></i> AGROSMART <span class="text-white fw-light">| Panel Interno</span></a>
+        <a href="/admin/ventas" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Volver a Ventas</a>
+    </div>
+</nav>
+
+<div class="container mb-5">
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-success text-white fw-bold">
+            <i class="bi bi-receipt"></i> Orden #<span th:text="${orden.idOrden}">1</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Fecha:</strong> <span th:text="${orden.fechaCreacion != null ? #temporals.format(orden.fechaCreacion, 'dd-MM-yyyy HH:mm') : '—'}">—</span></p>
+                    <p class="mb-1"><strong>Cliente:</strong> <span th:text="${orden.clienteNombre != null ? orden.clienteNombre : 'Invitado'}">—</span></p>
+                    <p class="mb-1"><strong>Email:</strong> <span th:text="${orden.clienteEmail != null ? orden.clienteEmail : '—'}">—</span></p>
+                    <p class="mb-1"><strong>Teléfono:</strong> <span th:text="${orden.clienteTelefono != null ? orden.clienteTelefono : '—'}">—</span></p>
+                    <p class="mb-0"><strong>RUT:</strong> <span th:text="${orden.clienteRut != null ? orden.clienteRut : '—'}">—</span></p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Estado:</strong> <span class="badge bg-dark" th:text="${orden.estado}">estado</span></p>
+                    <p class="mb-1"><strong>Webpay:</strong> <span class="badge bg-secondary" th:text="${orden.webpayStatus}">inicial</span></p>
+                    <p class="mb-1"><strong>Tipo entrega:</strong> <span th:text="${orden.tipoEntrega}">—</span></p>
+                    <p class="mb-1"><strong>Método de pago:</strong> <span th:text="${orden.metodoPago}">—</span></p>
+                    <p class="mb-0"><strong>Total:</strong>
+                        <span class="fw-bold text-success" th:text="'$' + ${#numbers.formatDecimal(orden.totalClp, 1, 'POINT', 0, 'COMMA')} + ' CLP'">$0</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-list-ul"></i> Detalle de la Venta (líneas)</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio unit. CLP</th>
+                    <th>Subtotal CLP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(detalles)}">
+                    <td colspan="4" class="text-center text-muted py-3">Sin líneas de detalle.</td>
+                </tr>
+                <tr th:each="d : ${detalles}">
+                    <td class="ps-3" th:text="${nombrePorProducto.getOrDefault(d.idProducto, 'Producto #' + d.idProducto)}">Producto</td>
+                    <td th:text="${d.cantidad}">0</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(d.precioUnitarioClp, 1, 'POINT', 0, 'COMMA')}">$0</td>
+                    <td class="fw-bold" th:text="'$' + ${#numbers.formatDecimal(d.precioUnitarioClp.multiply(T(java.math.BigDecimal).valueOf(d.cantidad)), 1, 'POINT', 0, 'COMMA')}">$0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-secondary text-white fw-bold"><i class="bi bi-cash-coin"></i> Pagos asociados</div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">N° Pago</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Transacción externa</th>
+                    <th>Fecha</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(pagos)}">
+                    <td colspan="5" class="text-center text-muted py-3">Aún no hay pagos registrados para esta orden.</td>
+                </tr>
+                <tr th:each="p : ${pagos}">
+                    <td class="ps-3" th:text="'#' + ${p.idPago}">#1</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(p.monto, 1, 'POINT', 0, 'COMMA')}">$0</td>
+                    <td>
+                        <span th:if="${p.estadoPago == 'aprobado'}" class="badge bg-success" th:text="${p.estadoPago}">aprobado</span>
+                        <span th:unless="${p.estadoPago == 'aprobado'}" class="badge bg-danger" th:text="${p.estadoPago}">rechazado</span>
+                    </td>
+                    <td th:text="${p.transaccionIdExterno != null ? p.transaccionIdExterno : '—'}">—</td>
+                    <td th:text="${p.fechaPago != null ? #temporals.format(p.fechaPago, 'dd-MM-yyyy HH:mm') : '—'}">—</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
